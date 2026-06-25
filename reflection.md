@@ -1,11 +1,17 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
-test
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
+> Needs pet, owner, task, Daily_plan entity
+> Attributes that the entities need & actions it can perform
+> Pet: name & id
+> Owner: name, id, owner preferences
+> Tasks: description, time available, priority, owner preferences
+> Daily_plan: tasks, date, pet_id
 
 **b. Design changes**
 
