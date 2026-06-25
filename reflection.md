@@ -17,6 +17,8 @@
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+> After consulting with claude, It added a Scheduler class which takes in a owner, pet, tasks & generates a Daily plan. This maybe could just be a method instead of 
+> class but seems alright with me. 
 
 ---
 
