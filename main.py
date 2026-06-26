@@ -1,4 +1,4 @@
-from pawpal_system import Task, Pet, Owner, DailyPlan, Priority
+from pawpal_system import Scheduler, Task, Pet, Owner, DailyPlan, Priority
 
 print("Sanity Check: Starting PawPal System...\n")
 
@@ -27,4 +27,10 @@ print(f"Pet 1 Info: {pet1.get_info()}, get_tasks:\n  " + "\n  ".join([task.get_i
 print()
 print(f"Pet 2 Info: {pet2.get_info()}, get_tasks:\n  " + "\n  ".join([task.get_info() for task in pet2.get_tasks()]))
 
+
+# showing the daily plan for pet1
 print("\nToday's Schedule")
+
+scheduler = Scheduler()
+plan = scheduler.generate_plan(owner1, pet1)  # This will call the generate_plan method of the Scheduler class
+plan.print_plan()
