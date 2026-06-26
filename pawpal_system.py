@@ -1,17 +1,26 @@
 from dataclasses import dataclass, field
+from enum import IntEnum
+
+
+class Priority(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
 
 @dataclass
 class Task:
     id: str
-    title: str
     description: str
     duration_minutes: int
-    priority: str  # "low", "medium", "high"
+    priority: Priority
     completion_status: bool = False
 
-    def is_high_priority(self) -> bool:
-        pass
+    def get_info(self) -> str:
+        return f"{self.description} ({self.duration_minutes}) mins, [Priority: {self.priority}]"
+
+    # def is_high_priority(self) -> bool:
+    #     return self.priority == "high"
 
     def mark_complete(self) -> None:
         self.completion_status = True
@@ -51,6 +60,10 @@ class Owner:
         return [task 
                 for pet in self.pets 
                 for task in pet.get_tasks()]
+    
+    def get_info(self) -> str:
+        return f"{self.name} (Available: {self.time_available_minutes} mins, Preferred Start: {self.preferred_start_time})"
+
 
 
 class DailyPlan:
