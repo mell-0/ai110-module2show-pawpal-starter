@@ -3,7 +3,10 @@ classDiagram
         +str id
         +str name
         +str species
+        +list tasks
         +get_info() str
+        +add_task(task) None
+        +get_tasks() list
     }
 
     class Owner {
@@ -13,8 +16,6 @@ classDiagram
         +str preferred_start_time
         +list pets
         +add_pet(pet) None
-        +add_task(task) None
-        +get_tasks() list
     }
 
     class Task {
@@ -37,11 +38,11 @@ classDiagram
     }
 
     class Scheduler {
-        +generate_plan(owner, pet, tasks) DailyPlan
+        +generate_plan(owner, pet) DailyPlan
     }
 
     Owner "1" --> "many" Pet : owns
-    Owner "1" --> "many" Task : manages
+    Pet "1" --> "many" Task : has
     Scheduler --> Owner : uses
     Scheduler --> Pet : uses
     Scheduler --> DailyPlan : produces
