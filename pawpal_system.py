@@ -8,9 +8,13 @@ class Task:
     description: str
     duration_minutes: int
     priority: str  # "low", "medium", "high"
+    completion_status: bool = False
 
     def is_high_priority(self) -> bool:
         pass
+
+    def mark_complete(self) -> None:
+        self.completion_status = True
 
 
 @dataclass
@@ -42,6 +46,12 @@ class Owner:
     def add_pet(self, pet: Pet) -> None:
         self.pets.append(pet)
 
+    # get all tasks across all pets for this owner
+    def get_all_tasks(self) -> list[Task]:
+        return [task 
+                for pet in self.pets 
+                for task in pet.get_tasks()]
+
 
 class DailyPlan:
     def __init__(self, date: str, owner: "Owner", pet: Pet):
@@ -52,13 +62,13 @@ class DailyPlan:
         self.tasks: list[Task] = []
 
     def add_task(self, task: Task) -> None:
-        pass
+        self.tasks.append(task)
 
     def total_duration(self) -> int:
-        pass
+        return sum(task.duration_minutes for task in self.tasks)
 
     def get_summary(self) -> str:
-        pass
+        return f"Daily Plan for {self.pet.get_info()} on {self.date}: {self.total_duration()} minutes"
 
 
 # Pets each have their own task pool
