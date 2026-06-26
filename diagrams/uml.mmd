@@ -28,6 +28,8 @@ classDiagram
 
     class DailyPlan {
         +str date
+        +Owner owner
+        +Pet pet
         +list tasks
         +add_task(task) None
         +total_duration() int
@@ -45,3 +47,4 @@ classDiagram
     Scheduler --> DailyPlan : produces
     DailyPlan "1" --> "many" Task : contains
     DailyPlan --> Pet : planned for
+    DailyPlan --> Owner : belongs to
