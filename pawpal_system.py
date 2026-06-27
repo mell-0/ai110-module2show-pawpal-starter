@@ -25,6 +25,12 @@ class Task:
 
     def mark_complete(self) -> None:
         self.completion_status = True
+    
+    def mark_incomplete(self) -> None:
+        self.completion_status = False
+
+    def get_completion_status(self) -> bool:
+        return self.completion_status
 
 
 @dataclass
@@ -97,6 +103,7 @@ class DailyPlan:
 # DailyPlan (contains only tasks that fit today)
 
 # Do I need the pet parameter in the DailyPlan constructor? Or should it just be the owner and the scheduler will pick tasks from all pets?
+# This makes a plan for one pet at a time
 class Scheduler:
     def generate_plan(self, owner: Owner, pet: Pet) -> DailyPlan:
         plan = DailyPlan(date=datetime.date.today().isoformat(), owner=owner, pet=pet)
@@ -106,9 +113,11 @@ class Scheduler:
             plan.add_task(task)
         return plan
 
+    # sort tasks by priority (high to low)
     def _sort_tasks(self, tasks: list[Task]) -> list[Task]:
         return sorted(tasks, key=lambda t: t.priority, reverse=True)
 
+    # select tasks that fit within the owner's time budget, in order of priority
     def _select_tasks(self, sorted_tasks: list[Task], time_budget: int) -> list[Task]:
         selected = []
         remaining = time_budget
