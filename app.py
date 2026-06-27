@@ -5,7 +5,10 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
 
-# --- Session state vault ---
+# Session state acts as the in-memory vault for the app.
+# Streamlit reruns the entire script on every interaction, so objects must be
+# stored here to persist across reruns. Each category uses a dict keyed by ID
+# so we can look up, add, or iterate without knowing IDs in advance.
 if "owners" not in st.session_state:
     st.session_state.owners = {}   # { owner_id: Owner }
 if "pets" not in st.session_state:
@@ -15,7 +18,11 @@ if "tasks" not in st.session_state:
 
 st.divider()
 
-# --- Add Owner ---
+# -------------------------------------------------------------------------
+# ADD OWNER
+# Creates an Owner instance and stores it in the vault.
+# IDs are auto-generated as o1, o2, ... based on current count.
+# -------------------------------------------------------------------------
 st.subheader("Add Owner")
 
 col1, col2, col3 = st.columns(3)
@@ -46,12 +53,18 @@ if st.session_state.owners:
 
 st.divider()
 
-# --- Add Pet ---
+# -------------------------------------------------------------------------
+# ADD PET
+# Creates a Pet instance, assigns it to an owner via owner.add_pet(),
+# and also stores it in the flat pets vault for easy cross-section lookup.
+# Blocked until at least one owner exists.
+# -------------------------------------------------------------------------
 st.subheader("Add Pet")
 
 if not st.session_state.owners:
     st.info("Add an owner first before adding a pet.")
 else:
+    # Build a name → id mapping so the selectbox can show names while we store by id
     owner_options = {o.name: oid for oid, o in st.session_state.owners.items()}
 
     col1, col2, col3 = st.columns(3)
@@ -68,12 +81,13 @@ else:
         owner = st.session_state.owners[owner_id]
 
         new_pet = Pet(id=pet_id, name=pet_name, species=species)
-        owner.add_pet(new_pet)
-        st.session_state.pets[pet_id] = new_pet
+        owner.add_pet(new_pet)                          # links pet to owner
+        st.session_state.pets[pet_id] = new_pet         # also store in flat vault
         st.success(f"Pet '{pet_name}' added to {owner.name} (ID: {pet_id})")
 
     if st.session_state.pets:
         st.write("Current pets:")
+        # Reverse-lookup: walk each owner's pet list to map pet_id → owner name
         pet_owner = {
             p.id: o.name
             for o in st.session_state.owners.values()
@@ -86,7 +100,13 @@ else:
 
 st.divider()
 
-# --- Add Task ---
+# -------------------------------------------------------------------------
+# ADD TASK
+# Creates a Task instance, assigns it to a pet via pet.add_task(),
+# and stores it in the flat tasks vault.
+# Priority string from the UI is converted to the Priority enum before storage.
+# Blocked until at least one pet exists.
+# -------------------------------------------------------------------------
 st.subheader("Add Task")
 
 if not st.session_state.pets:
@@ -109,6 +129,7 @@ else:
         pet_id = pet_options[selected_pet_name]
         pet = st.session_state.pets[pet_id]
 
+        # Convert UI string to Priority enum so the Scheduler can compare values
         priority_map = {"low": Priority.LOW, "medium": Priority.MEDIUM, "high": Priority.HIGH}
         new_task = Task(
             id=task_id,
@@ -116,17 +137,19 @@ else:
             duration_minutes=int(duration),
             priority=priority_map[priority_str],
         )
-        pet.add_task(new_task)
-        st.session_state.tasks[task_id] = new_task
+        pet.add_task(new_task)                          # links task to pet
+        st.session_state.tasks[task_id] = new_task      # also store in flat vault
         st.success(f"Task '{task_title}' added to {pet.name} (ID: {task_id})")
 
     if st.session_state.tasks:
         st.write("Current tasks:")
+        # task_pet: maps task_id → Pet by walking each pet's task list
         task_pet = {
             t.id: p
             for p in st.session_state.pets.values()
             for t in p.get_tasks()
         }
+        # pet_owner: maps pet_id → owner name by walking each owner's pet list
         pet_owner = {
             p.id: o.name
             for o in st.session_state.owners.values()
@@ -139,6 +162,7 @@ else:
                 "duration_mins": t.duration_minutes,
                 "priority": t.priority.name.lower(),
                 "pet": task_pet[t.id].name if t.id in task_pet else "unassigned",
+                # chain task → pet → owner to resolve the owner column
                 "owner": pet_owner.get(task_pet[t.id].id, "unassigned") if t.id in task_pet else "unassigned",
             }
             for t in st.session_state.tasks.values()
@@ -146,18 +170,24 @@ else:
 
 st.divider()
 
-# --- Generate Schedule ---
+# -------------------------------------------------------------------------
+# GENERATE SCHEDULE
+# Enforces strict ownership: the pet dropdown only shows pets that belong
+# to the selected owner (pulled from owner.pets, not the global vault).
+# Passes the owner and pet to Scheduler.generate_plan(), then displays
+# the resulting DailyPlan as a timed table.
+# -------------------------------------------------------------------------
 st.subheader("Generate Schedule")
 
 if not st.session_state.owners or not st.session_state.pets:
     st.info("Add at least one owner and one pet to generate a schedule.")
 else:
     owner_options = {o.name: oid for oid, o in st.session_state.owners.items()}
-    pet_options = {p.name: pid for pid, p in st.session_state.pets.items()}
 
     sched_owner_name = st.selectbox("Owner", list(owner_options.keys()), key="sched_owner")
     owner = st.session_state.owners[owner_options[sched_owner_name]]
 
+    # Only show pets this owner actually owns (strict ownership)
     owned_pets = {p.name: p.id for p in owner.pets}
     if not owned_pets:
         st.info(f"{owner.name} has no pets. Add a pet and assign it to this owner first.")
@@ -176,6 +206,7 @@ else:
 
             st.success(plan.get_summary())
 
+            # Build a timed table by advancing a clock for each task in the plan
             import datetime
             current_time = datetime.datetime.strptime(owner.preferred_start_time, "%H:%M")
             rows = []
