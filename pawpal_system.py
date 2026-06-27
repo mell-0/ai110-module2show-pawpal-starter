@@ -113,7 +113,6 @@ class DailyPlan:
 # Pets each have their own task pool
 #     ↓  Scheduler filters & orders by priority + owner's time constraints
 # DailyPlan (contains only tasks that fit today)
-
 # This makes a plan for one pet at a time
 class Scheduler:
     # Builds and returns a DailyPlan for a pet by selecting tasks that fit the owner's available time.
@@ -138,3 +137,7 @@ class Scheduler:
                 selected.append(task)
                 remaining -= task.duration_minutes
         return selected
+
+
+# questions
+# Should owners be able to take tasks from a pet they don't own?
