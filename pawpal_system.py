@@ -1,12 +1,18 @@
 import datetime
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 
 class Priority(IntEnum):
     LOW = 1
     MEDIUM = 2
     HIGH = 3
+
+
+class Frequency(Enum):
+    ONCE = "once"
+    DAILY = "daily"
+    WEEKLY = "weekly"
 
 
 @dataclass
@@ -16,15 +22,36 @@ class Task:
     duration_minutes: int
     priority: Priority
     time: str = "00:00"
+    frequency: Frequency = Frequency.ONCE
+    due_date: str = field(default_factory=lambda: datetime.date.today().isoformat())
     completion_status: bool = False
 
     # Returns a formatted string with the task's description, duration, and priority.
     def get_info(self) -> str:
-        return f"{self.description} ({self.duration_minutes} mins) [Priority: {self.priority.name.lower()}]"
+        return f"{self.description} ({self.duration_minutes} mins) [Priority: {self.priority.name.lower()}] [Frequency: {self.frequency.value}] [Due: {self.due_date}]"
 
     # Sets completion_status to True to mark the task as done.
     def mark_complete(self) -> None:
         self.completion_status = True
+
+    # Returns a new Task for the next occurrence if frequency is DAILY or WEEKLY, otherwise None.
+    def get_next_occurrence(self) -> "Task | None":
+        if self.frequency == Frequency.ONCE:
+            return None
+        current_due = datetime.date.fromisoformat(self.due_date)
+        if self.frequency == Frequency.DAILY:
+            next_due = current_due + datetime.timedelta(days=1)
+        else:
+            next_due = current_due + datetime.timedelta(weeks=1)
+        return Task(
+            id=f"{self.id}_next",
+            description=self.description,
+            duration_minutes=self.duration_minutes,
+            priority=self.priority,
+            time=self.time,
+            frequency=self.frequency,
+            due_date=next_due.isoformat(),
+        )
 
     # Sets completion_status to False to mark the task as not done.
     def mark_incomplete(self) -> None:
@@ -142,6 +169,14 @@ class Scheduler:
     # sort tasks by their start time (HH:MM) from earliest to latest
     def sort_by_time(self, tasks: list[Task]) -> list[Task]:
         return sorted(tasks, key=lambda t: tuple(int(x) for x in t.time.split(":")))
+
+    # Marks a task complete and adds the next occurrence to the pet's task pool if the task repeats.
+    def mark_task_complete(self, task: Task, pet: Pet) -> "Task | None":
+        task.mark_complete()
+        next_task = task.get_next_occurrence()
+        if next_task:
+            pet.add_task(next_task)
+        return next_task
 
 
 # questions

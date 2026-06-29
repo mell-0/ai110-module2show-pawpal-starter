@@ -1,4 +1,4 @@
-from pawpal_system import Scheduler, Task, Pet, Owner, DailyPlan, Priority
+from pawpal_system import Scheduler, Task, Pet, Owner, DailyPlan, Priority, Frequency
 
 print("Sanity Check: Starting PawPal System...\n")
 
@@ -7,9 +7,9 @@ owner1 = Owner(id="owner1", name="Alice", time_available_minutes=120, preferred_
 
 # creating pet 1 and adding tasks for pet1
 pet1 = Pet(id="pet1", name="Dawg", species="Dog")
-pet1.add_task(Task(id="task1", description="Walk Dawg", duration_minutes=30, priority=Priority.MEDIUM, time="10:00"))
-pet1.add_task(Task(id="task2", description="Groom Dawg", duration_minutes=45, priority=Priority.LOW, time="08:30"))
-pet1.add_task(Task(id="task3", description="Give Dawg meds", duration_minutes=10, priority=Priority.HIGH, time="09:15"))
+pet1.add_task(Task(id="task1", description="Walk Dawg", duration_minutes=30, priority=Priority.MEDIUM, time="10:00", frequency=Frequency.DAILY))
+pet1.add_task(Task(id="task2", description="Groom Dawg", duration_minutes=45, priority=Priority.LOW, time="08:30", frequency=Frequency.WEEKLY))
+pet1.add_task(Task(id="task3", description="Give Dawg meds", duration_minutes=10, priority=Priority.HIGH, time="09:15", frequency=Frequency.DAILY))
 
 # creating pet 2 and adding tasks for pet2
 pet2 = Pet(id="pet2", name="Whisky", species="Cat")
@@ -40,3 +40,16 @@ print("\nPet 1 Tasks Sorted by Time:")
 sorted_tasks = scheduler.sort_by_time(pet1.get_tasks())
 for task in sorted_tasks:
     print(f"  {task.time} - {task.get_info()}")
+
+# demonstrating mark_task_complete with recurring tasks
+print("\n--- Testing Recurring Tasks ---")
+walk_task = pet1.get_tasks()[0]  # Walk Dawg (DAILY)
+print(f"Before: {walk_task.get_info()} | Completed: {walk_task.get_completion_status()}")
+print(f"Pet 1 task count before: {len(pet1.get_tasks())}")
+
+next_task = scheduler.mark_task_complete(walk_task, pet1)
+
+print(f"After:  {walk_task.get_info()} | Completed: {walk_task.get_completion_status()}")
+print(f"Pet 1 task count after:  {len(pet1.get_tasks())}")
+if next_task:
+    print(f"New task created: {next_task.get_info()}")
