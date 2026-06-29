@@ -201,8 +201,8 @@ else:
         if not pet.get_tasks():
             st.warning(f"{pet.name} has no tasks. Add tasks to this pet first.")
         else:
-            scheduler = Scheduler()
-            plan = scheduler.generate_plan(owner=owner, pet=pet)
+            # scheduler = Scheduler()
+            plan = Scheduler.generate_plan(owner=owner, pet=pet)
 
             st.success(plan.get_summary())
 

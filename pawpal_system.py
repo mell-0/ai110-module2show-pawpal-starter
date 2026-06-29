@@ -15,6 +15,7 @@ class Task:
     description: str
     duration_minutes: int
     priority: Priority
+    time: str = "00:00"
     completion_status: bool = False
 
     # Returns a formatted string with the task's description, duration, and priority.
@@ -137,6 +138,10 @@ class Scheduler:
                 selected.append(task)
                 remaining -= task.duration_minutes
         return selected
+
+    # sort tasks by their start time (HH:MM) from earliest to latest
+    def sort_by_time(self, tasks: list[Task]) -> list[Task]:
+        return sorted(tasks, key=lambda t: tuple(int(x) for x in t.time.split(":")))
 
 
 # questions

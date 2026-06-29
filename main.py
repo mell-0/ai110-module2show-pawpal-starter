@@ -7,9 +7,9 @@ owner1 = Owner(id="owner1", name="Alice", time_available_minutes=120, preferred_
 
 # creating pet 1 and adding tasks for pet1
 pet1 = Pet(id="pet1", name="Dawg", species="Dog")
-pet1.add_task(Task(id="task1", description="Walk Dawg", duration_minutes=30, priority=Priority.MEDIUM))
-pet1.add_task(Task(id="task2", description="Groom Dawg", duration_minutes=45, priority=Priority.LOW))
-pet1.add_task(Task(id="task3", description="Give Dawg meds", duration_minutes=10, priority=Priority.HIGH))
+pet1.add_task(Task(id="task1", description="Walk Dawg", duration_minutes=30, priority=Priority.MEDIUM, time="10:00"))
+pet1.add_task(Task(id="task2", description="Groom Dawg", duration_minutes=45, priority=Priority.LOW, time="08:30"))
+pet1.add_task(Task(id="task3", description="Give Dawg meds", duration_minutes=10, priority=Priority.HIGH, time="09:15"))
 
 # creating pet 2 and adding tasks for pet2
 pet2 = Pet(id="pet2", name="Whisky", species="Cat")
@@ -34,3 +34,9 @@ print("\nToday's Schedule")
 scheduler = Scheduler()
 plan = scheduler.generate_plan(owner1, pet1)  # This will call the generate_plan method of the Scheduler class
 plan.print_plan()
+
+# demonstrating sort_by_time on pet1's tasks (added out of order above)
+print("\nPet 1 Tasks Sorted by Time:")
+sorted_tasks = scheduler.sort_by_time(pet1.get_tasks())
+for task in sorted_tasks:
+    print(f"  {task.time} - {task.get_info()}")
