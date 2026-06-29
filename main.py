@@ -10,6 +10,8 @@ pet1 = Pet(id="pet1", name="Dawg", species="Dog")
 pet1.add_task(Task(id="task1", description="Walk Dawg", duration_minutes=30, priority=Priority.MEDIUM, time="10:00", frequency=Frequency.DAILY))
 pet1.add_task(Task(id="task2", description="Groom Dawg", duration_minutes=45, priority=Priority.LOW, time="08:30", frequency=Frequency.WEEKLY))
 pet1.add_task(Task(id="task3", description="Give Dawg meds", duration_minutes=10, priority=Priority.HIGH, time="09:15", frequency=Frequency.DAILY))
+# intentional conflict: Bath Dawg starts at 10:15, which overlaps with Walk Dawg (10:00-10:30)
+pet1.add_task(Task(id="task7", description="Bath Dawg", duration_minutes=20, priority=Priority.MEDIUM, time="10:15"))
 
 # creating pet 2 and adding tasks for pet2
 pet2 = Pet(id="pet2", name="Whisky", species="Cat")
@@ -53,3 +55,21 @@ print(f"After:  {walk_task.get_info()} | Completed: {walk_task.get_completion_st
 print(f"Pet 1 task count after:  {len(pet1.get_tasks())}")
 if next_task:
     print(f"New task created: {next_task.get_info()}")
+
+# demonstrating conflict detection
+print("\n--- Conflict Detection: Pet 1 Only ---")
+warnings = scheduler.detect_conflicts(pet1.get_tasks())
+if warnings:
+    for w in warnings:
+        print(f"  {w}")
+else:
+    print("  No conflicts found.")
+
+print("\n--- Conflict Detection: All Pets Combined ---")
+all_tasks = pet1.get_tasks() + pet2.get_tasks()
+warnings = scheduler.detect_conflicts(all_tasks)
+if warnings:
+    for w in warnings:
+        print(f"  {w}")
+else:
+    print("  No conflicts found.")

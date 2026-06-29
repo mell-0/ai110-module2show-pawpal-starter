@@ -170,6 +170,28 @@ class Scheduler:
     def sort_by_time(self, tasks: list[Task]) -> list[Task]:
         return sorted(tasks, key=lambda t: tuple(int(x) for x in t.time.split(":")))
 
+    # Converts "HH:MM" to total minutes since midnight for easy integer comparison.
+    def _to_minutes(self, time_str: str) -> int:
+        h, m = time_str.split(":")
+        return int(h) * 60 + int(m)
+
+    # Returns a list of warning strings for any tasks whose time windows overlap.
+    def detect_conflicts(self, tasks: list[Task]) -> list[str]:
+        warnings = []
+        for i in range(len(tasks)):
+            for j in range(i + 1, len(tasks)):
+                a, b = tasks[i], tasks[j]
+                start_a = self._to_minutes(a.time)
+                end_a   = start_a + a.duration_minutes
+                start_b = self._to_minutes(b.time)
+                end_b   = start_b + b.duration_minutes
+                if start_a < end_b and start_b < end_a:
+                    warnings.append(
+                        f"CONFLICT: '{a.description}' ({a.time}-{end_a // 60:02d}:{end_a % 60:02d}) "
+                        f"overlaps with '{b.description}' ({b.time}-{end_b // 60:02d}:{end_b % 60:02d})"
+                    )
+        return warnings
+
     # Marks a task complete and adds the next occurrence to the pet's task pool if the task repeats.
     def mark_task_complete(self, task: Task, pet: Pet) -> "Task | None":
         task.mark_complete()
